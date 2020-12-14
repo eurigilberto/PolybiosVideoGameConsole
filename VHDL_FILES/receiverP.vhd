@@ -6,8 +6,6 @@ END receiverP;
  
 ARCHITECTURE behavior OF receiverP IS 
  
-    -- Component Declaration for the Unit Under Test (UUT)
- 
     COMPONENT SPI_receiver
     PORT(
          clk : IN  std_logic;

@@ -105,9 +105,13 @@ component Processor
 		c3_p0_rd_error                          : in std_logic;
 		
 		debug_leds 		: out std_logic_vector(7 downto 0);
-		btn				: in std_logic;
-		voltA : out std_logic_vector(1 downto 0);
-		inputA : in std_logic_vector(4 downto 0)
+        btn				: in std_logic;
+        
+        out_p6 : out std_logic_vector(3 downto 0);
+        input_p6 : in std_logic_vector(3 downto 0);
+
+        out_p7 : out std_logic_vector(3 downto 0);
+        input_p7 : in std_logic_vector(3 downto 0)
 	);
 end component;
 
@@ -442,6 +446,9 @@ signal clk : std_logic;
 signal video_clock : std_logic;
 signal video_clock_2x : std_logic;
 
+signal controller_a_signal : std_logic_vector(13 downto 0);
+signal controller_b_signal : std_logic_vector(13 downto 0);
+
 begin
 
 SevenSegmentEnable(2) <= not(write_done);
@@ -452,7 +459,20 @@ dataLEDsignal <= dataLEDS when write_done = '0' else
 			  errorLEDS;
 			  
 dataLED <= dataLEDsignal when btn_reader(2) = '0' else
-			  proLEDS;
+              proLEDS;
+              
+controller_system_inst: controllers
+    port map(
+        clk                                     => video_clock_2x;
+        
+        out_p6                                  => out_p6;
+        input_p6                                => input_p6;
+        constroller_a                           => controller_a_signal;
+
+        out_p7                                  => out_p7;
+        input_p7                                => input_p7;
+        controller_b                            => controller_b_signal
+    );
 
 Processor_inst: Processor
 	port map(
@@ -496,10 +516,11 @@ Processor_inst: Processor
 		c3_p0_rd_overflow                       => c3_p0_rd_overflow,
 		c3_p0_rd_error                          => c3_p0_rd_error,
 		
-		debug_leds 		=> proLEDS,--dataLED,
-		btn				=> not(btn_reader(0)),
-		voltA				=> voltA,
-		inputA			=> inputA
+		debug_leds 		                        => proLEDS,--dataLED,
+        btn				                        => not(btn_reader(0)),
+        
+		controller_a                            => controller_a_signal,
+		controller_b			                => controller_b_signal
 	);
 
 SD_CARD_CLK_inst : SD_CARD_CLK
@@ -682,7 +703,7 @@ video_freq_inst: video_freq
 VideoSystemInst : VideoSystem
 
 	port map(
-		clk => video_clock_2x,
+		video_clock_2x => video_clock_2x,
 		
 		system_loaded => write_done,
 		

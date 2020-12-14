@@ -9,21 +9,28 @@ entity layer_configuration_system is
 		
 		cmd_in: in std_logic_vector(3 downto 0);
         data_in: in std_logic_vector(23 downto 0);
-		input_enable : in std_logic
+		input_enable : in std_logic;
+
+		layer_index: in std_logic_vector(1 downto 0);
+
+		layer_address_out: out std_logic_vector(23 downto 0);
+		horizontal_address_offset_out: out std_logic_vector(6 downto 0);
+		vertical_address_offset_out: out std_logic_vector(7 downto 0);
+		transparent_color_out out array (3 downto 0) of std_logic_vector(7 downto 0)
 	);
 
 end layer_configuration_system;
 
-architecture Behavioral of process_register_system is
+architecture Behavioral of layer_configuration_system is
 
 	--The start of said layer in the RAM.
-	type layer_address is array of 3 downto 0 of std_logic_vector(23 downto 0);
+	type layer_address is array (3 downto 0) of std_logic_vector(23 downto 0);
 	--The horizontal offset is a 4 pixels offset. Goes from 0 to 79 after that it is going to repeat.
-	type horizontal_address_offset is array of 3 downto 0 of std_logic_vector(6 downto 0);
+	type horizontal_address_offset is array (3 downto 0) of std_logic_vector(6 downto 0);
 	--The vertical offset is a 1 pixel offset. Goes from 0 to 255.
-	type vertical_address_offset is array of 3 downto 0 of std_logic_vector(7 downto 0);
+	type vertical_address_offset is array (3 downto 0) of std_logic_vector(7 downto 0);
 	--The transparent color is a color that is used to "blend" the layers together. It is only used for all the layers other than the first one.
-	type transparent_color is array of 3 downto 0 of std_logic_vector(7 downto 0);
+	type transparent_color is array (3 downto 0) of std_logic_vector(7 downto 0);
 
 	signal layers_address : layer_address := (other=>(others=>'0'));
 	signal horizontal_address_offsets : horizontal_address_offset := (other=>(others=>'0'));
@@ -60,5 +67,10 @@ begin
 		end if;
 	end if;
 end process;
+
+layer_address_out <= layers_address(to_integer(layer_index));
+horizontal_address_offset_out <= horizontal_address_offsets(to_integer(layer_index));
+vertical_address_offset_out <= vertical_address_offsets(to_integer(layer_index));
+transparent_color_out <= transparent_colors;
 
 end Behavioral;

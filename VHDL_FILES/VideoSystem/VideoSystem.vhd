@@ -6,7 +6,7 @@ use IEEE.numeric_std.ALL;
 entity VideoSystem is
 
 	port(
-		clk : in std_logic;
+		video_clock_2x : in std_logic;
 		
 		video_clk : in std_logic;
 		
@@ -18,13 +18,14 @@ entity VideoSystem is
 		
 		system_loaded : in std_logic;
 
-		--CHANGE INTERNAL REGISTERS
-		data_out : out std_logic_vector(23 downto 0);
-		data_in : in std_logic_vector(23 downto 0);
-		cmd_input : in std_logic_vector(3 downto 0);
-		cmd_output : in std_logic_vector(3 downto 0);
-		input_enable : in std_logic;
-		--CHANGE INTERNAL REGISTERS
+		--GET VIDEO INFO
+		video_info_data_out : out std_logic_vector(23 downto 0);
+		video_info_cmd: in std_logic_vector(1 downto 0);
+
+		--SET VIDEO LAYERS DATA
+		video_layers_data_in: in std_logic_vector(23 downto 0);
+		video_layers_cmd: in std_logic_vector(3 downto 0);
+		video_layers_input_enabled: in std_logic;
 		
 		--CMD
 		c3_p3_cmd_clk : out  STD_LOGIC;
@@ -49,43 +50,6 @@ entity VideoSystem is
 end VideoSystem;
 
 architecture Behavioral of VideoSystem is
-
-component neg
-    Port ( input : in  STD_LOGIC;
-           output : out  STD_LOGIC);
-end component;
-
-component process_register_system
-
-	port(
-		clk : in std_logic;
-		system_loaded : in std_logic;
-		finish_frame : in std_logic;
-		
-		base_layer_address_bg_s : out std_logic_vector(23 downto 0);
-		base_layer_address_fg_s : out std_logic_vector(23 downto 0);
-		horizontal_address_offset_bg_s : out std_logic_vector(6 downto 0);
-		horizontal_address_offset_fg_s : out std_logic_vector(6 downto 0);
-		vertical_address_offset_bg_s : out std_logic_vector(8 downto 0);
-		vertical_address_offset_fg_s : out std_logic_vector(8 downto 0);
-		transparent_color_s : out std_logic_vector(7 downto 0);
-		transparent_color_sp_s : out std_logic_vector(7 downto 0);
-		transparent_color_tx_s : out std_logic_vector(7 downto 0);
-		
-		horizontal_pixel_coordinates_signal : in std_logic_vector(7 downto 0);
-		vertical_pixel_coordinates_signal : in std_logic_vector(8 downto 0);
-		
-		data_in : in std_logic_vector(23 downto 0);
-		data_out : out std_logic_vector(23 downto 0);
-		
-		cmd_input : in std_logic_vector(3 downto 0);
-		cmd_output : in std_logic_vector(3 downto 0);
-		input_enable : in std_logic;
-		
-		frame_counter_o : out std_logic_vector(23 downto 0)
-	);
-
-end component;
 
 component special_color_buffer is
 	port(
@@ -324,41 +288,59 @@ signal	frame_counter : std_logic_vector(23 downto 0);
 
 signal	clk_neg : std_logic;
 
+
+--Video Layer signal
+signal write_enabled_a_video_layers : std_logic_vector(3 downto 0) := (others => '0');
+signal address_a_video_layers : array (3 downto 0) of std_logic_vector(3 downto 0) := (others => (others => '0'));
+signal data_in_a_video_layers : array (3 downto 0) of std_logic_vector(31 DOWNTO 0) := (others => (others => '0'));
+
+signal address_b_video_layers : array (3 downto 0) of std_logic_vector(3 downto 0) := (others => (others => '0'));
+signal data_out_b_video_layers : array (3 downto 0) of std_logic_vector(31 DOWNTO 0) := (others => (others => '0'));
+
+--Layer Info Signals
+signal layer_index : std_logic_vector(1 downto 0) := "00";
+signal selected_layer_address : std_logic_vector(23 downto 0) := (others => '0');
+signal selected_layer_horizontal_address_offset : std_logic_vector(6 downto 0) := (others => '0');
+signal selected_layer_vertical_address_offset : std_logic_vector(7 downto 0) := (others => '0');
+signal layers_transparency_color : array (3 downto 0) of std_logic_vector(7 downto 0) := (others => '0');
+
 begin
+
+video_clock_2x_neg <= not(video_clock_2x);
+
 
 process_register_system_inst: process_register_system
 
 	port map(
-		clk => clk,
+		clk => video_clock_2x,
 		system_loaded => system_loaded,
 		finish_frame => finish_frame,
-		
-		base_layer_address_bg_s => base_layer_address_bg,
-		base_layer_address_fg_s => base_layer_address_fg,
-		horizontal_address_offset_bg_s => horizontal_address_offset_bg,
-		horizontal_address_offset_fg_s => horizontal_address_offset_fg,
-		vertical_address_offset_bg_s => vertical_address_offset_bg,
-		vertical_address_offset_fg_s => vertical_address_offset_fg,
-		transparent_color_s => transparent_color,
-		transparent_color_sp_s => transparent_color_sp,
-		transparent_color_tx_s => transparent_color_tx,
-		
+
 		horizontal_pixel_coordinates_signal => horizontal_pixel_coordinates_signal,
 		vertical_pixel_coordinates_signal => vertical_pixel_coordinates_signal,
 		
-		data_in => data_in,
-		data_out => data_out,
-		
-		cmd_input => cmd_input,
-		cmd_output => cmd_output,
-		input_enable => input_enable,
+		data_out => video_info_data_out,
+		cmd => video_info_cmd,
 		
 		frame_counter_o => frame_counter
 	);
 
-neg_inst : neg
-    Port map ( input => clk,
-           output => clk_neg);
+layer_configuration_system_inst: layer_configuration_system
+
+		port map(
+			clk => video_clock_2x,
+			
+			cmd_in => video_layers_cmd,
+			data_in => video_layers_data_in,
+			input_enable => video_layers_input_enabled,
+	
+			layer_index => layer_index,
+	
+			layer_address_out => selected_layer_address,
+			horizontal_address_offset_out => selected_layer_horizontal_address_offset,
+			vertical_address_offset_out => selected_layer_vertical_address_offset,
+			transparent_color_out=> layers_transparency_color
+		);
 
 special_color_buffer_inst: special_color_buffer
 	port map(
@@ -401,7 +383,7 @@ color_system_inst: color_system
 			
 video_buffer_controller_inst: video_buffer_controller
 	port map(
-		clk => clk,
+		clk => video_clock_2x,
 		system_loaded => system_loaded,
 		enable_load => enable_load,
 		
@@ -444,7 +426,7 @@ video_buffer_controller_inst: video_buffer_controller
 load_buffer_system_inst : load_buffer_system
 
 	port map(
-		clk => clk_neg,
+		clk => video_clock_2x_neg,
 		
 		enable => enable_load,
 		
@@ -497,34 +479,76 @@ videoPort_inst : videoPort
 		finish_frame => finish_frame
 	);
 
-video_buffer_BG_inst : video_buffer
+video_buffer_0 : video_buffer
 
   PORT MAP (
-    clka => clk,
-    wea => wea_bg,
-    addra => addra_block_bg,
-    dina => dina_bg,
-    douta => open,--douta_bg,
-    clkb => clk_neg,
+	clka => video_clock_2x,
+	
+    wea => write_enabled_a_video_layers(0),
+    addra => address_a_video_layers(0),
+    dina => data_in_a_video_layers(0),
+	douta => open,
+	
+	clkb => video_clock_2x_neg,
+	
     web => "0",
-    addrb => addrb_bg,
+    addrb => address_b_video_layers(0),
     dinb => (others => '0'),
-    doutb => doutb_bg
+    doutb => data_out_b_video_layers(0)
   );
 
-video_buffer_FG_inst : video_buffer
+video_buffer_1 : video_buffer
 
   PORT MAP (
-    clka => clk,
-    wea => wea_fg,
-    addra => addra_block_fg,
-    dina => dina_fg,
-    douta => open,--douta_fg,
-    clkb => clk_neg,
+	clka => video_clock_2x,
+	
+    wea => write_enabled_a_video_layers(1),
+    addra => address_a_video_layers(1),
+    dina => data_in_a_video_layers(1),
+	douta => open,
+	
+	clkb => video_clock_2x_neg,
+	
     web => "0",
-    addrb => addrb_fg,
+    addrb => address_b_video_layers(1),
     dinb => (others => '0'),
-    doutb => doutb_fg
+    doutb => data_out_b_video_layers(1)
+  );
+
+video_buffer_2 : video_buffer
+
+  PORT MAP (
+	clka => video_clock_2x,
+	
+    wea => write_enabled_a_video_layers(2),
+    addra => address_a_video_layers(2),
+    dina => data_in_a_video_layers(2),
+	douta => open,
+	
+	clkb => video_clock_2x_neg,
+	
+    web => "0",
+    addrb => address_b_video_layers(2),
+    dinb => (others => '0'),
+    doutb => data_out_b_video_layers(2)
+  );
+
+video_buffer_3 : video_buffer
+
+  PORT MAP (
+    clka => video_clock_2x,
+	
+	wea => write_enabled_a_video_layers(3),
+    addra => address_a_video_layers(3),
+	dina => data_in_a_video_layers(3),
+	douta => open,
+	
+    clkb => video_clock_2x_neg,
+	
+	web => "0",
+    addrb => address_b_video_layers(3),
+    dinb => (others => '0'),
+	doutb => data_out_b_video_layers(3)
   );
 
 end Behavioral;

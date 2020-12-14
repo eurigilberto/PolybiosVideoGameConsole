@@ -47,24 +47,13 @@ entity Processor is
 		
 		debug_leds 		: out std_logic_vector(7 downto 0);
 		btn				: in std_logic;
-		
-		voltA : out std_logic_vector(3 downto 0);
-		inputA : in std_logic_vector(3 downto 0)
+
+		controller_a : in std_logic_vector(13 downto 0);
+		controller_b : in std_logic_vector(13 downto 0)
 	);
 end Processor;
 
 architecture Behavioral of Processor is
-
-component controllerX is
-
-	port(
-		clk : in std_logic;
-		volt : out std_logic_vector(1 downto 0);
-		input : in std_logic_vector(4 downto 0);
-		controlOut : out std_logic_vector(9 downto 0)
-	);
-
-end component;
 
 component Port0BiController is
     Port ( clk : in std_logic;
@@ -222,13 +211,6 @@ enAv(0) <= enA;
 enBv(0) <= enB;
 clk_neg <= not(clk);
 
-controllerA : controllerX
-	port map(
-		clk => clk,
-		volt => voltA, 
-		input => inputA,
-		controlOut => controlOutA
-	);
 RAM_SPRITE_inst : RAM_SPRITE
   PORT MAP (
     clka => clk_neg,
