@@ -6,11 +6,14 @@ entity ControlSystem is
 	port(
 		clk 				: in std_logic;
 		
-		data_out_v 		: in std_logic_vector(23 downto 0);
-		data_in_v 		: out std_logic_vector(23 downto 0);
-		cmd_input_v 	: out std_logic_vector(3 downto 0);
-		cmd_output_v 	: out std_logic_vector(3 downto 0);
-		input_enable_v : out std_logic;
+		--GET VIDEO INFO
+		video_info_data_out 							 : out std_logic_vector(23 downto 0);
+		video_info_cmd 									 : in std_logic_vector(1 downto 0);
+
+		--SET VIDEO LAYERS DATA
+		video_layers_data_in							 : in std_logic_vector(23 downto 0);
+		video_layers_cmd								 : in std_logic_vector(3 downto 0);
+		video_layers_input_enabled						 : in std_logic;
 		
 		we_RSP : out STD_LOGIC_VECTOR(0 DOWNTO 0);
 		addr_RSP : out STD_LOGIC_VECTOR(5 DOWNTO 0);
@@ -39,7 +42,8 @@ entity ControlSystem is
 		debug_leds 		: out std_logic_vector(7 downto 0);
 		btn				: in std_logic;
 		
-		controlOutA		: in std_logic_vector(15 downto 0)
+		controller_a : in std_logic_vector(13 downto 0);
+		controller_b : in std_logic_vector(13 downto 0)
 	);
 end ControlSystem;
 

@@ -13,14 +13,14 @@ entity video_system_info is
 		cmd : in std_logic_vector(1 downto 0);
 
 		horizontal_pixel_coordinates_signal : in std_logic_vector(7 downto 0);
-		vertical_pixel_coordinates_signal : in std_logic_vector(8 downto 0);
+		vertical_pixel_coordinates_signal : in std_logic_vector(7 downto 0);
 		
 		frame_counter_o : out std_logic_vector(23 downto 0)
 	);
 
 end video_system_info;
 
-architecture Behavioral of process_register_system is
+architecture Behavioral of video_system_info is
 
 signal startCounting : std_logic := '0';
 signal finish_frame_flag : std_logic := '0';
@@ -59,7 +59,7 @@ begin
 			when "01" =>
 				data_out <= "0000000000000000"&horizontal_pixel_coordinates_signal;
 			when "10" =>
-				data_out <= "000000000000000"&vertical_pixel_coordinates_signal;
+				data_out <= "0000000000000000"&vertical_pixel_coordinates_signal;
 			when others =>
 				data_out <= (others => '0');
 		end case;

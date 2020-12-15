@@ -9,11 +9,14 @@ entity Processor is
 
 		calib_done 										 : in std_logic;
 
-		data_out_v 										 : in std_logic_vector(23 downto 0);
-		data_in_v 										 : out std_logic_vector(23 downto 0);
-		cmd_input_v 									 : out std_logic_vector(3 downto 0);
-		cmd_output_v 									 : out std_logic_vector(3 downto 0);
-		input_enable_v 								 : out std_logic;
+		--GET VIDEO INFO
+		video_info_data_out 							 : out std_logic_vector(23 downto 0);
+		video_info_cmd 									 : in std_logic_vector(1 downto 0);
+
+		--SET VIDEO LAYERS DATA
+		video_layers_data_in							 : in std_logic_vector(23 downto 0);
+		video_layers_cmd								 : in std_logic_vector(3 downto 0);
+		video_layers_input_enabled						 : in std_logic;
 
 		--Port 0 CMD
 		c3_p0_cmd_clk                           : out std_logic;
@@ -116,11 +119,14 @@ component ControlSystem
 	port(
 		clk 				: in std_logic;
 		
-		data_out_v 										 : in std_logic_vector(23 downto 0);
-		data_in_v 										 : out std_logic_vector(23 downto 0);
-		cmd_input_v 									 : out std_logic_vector(3 downto 0);
-		cmd_output_v 									 : out std_logic_vector(3 downto 0);
-		input_enable_v 								 : out std_logic;
+		--GET VIDEO INFO
+		video_info_data_out 							 : out std_logic_vector(23 downto 0);
+		video_info_cmd 									 : in std_logic_vector(1 downto 0);
+
+		--SET VIDEO LAYERS DATA
+		video_layers_data_in							 : in std_logic_vector(23 downto 0);
+		video_layers_cmd								 : in std_logic_vector(3 downto 0);
+		video_layers_input_enabled						 : in std_logic;
 		
 		we_RSP : out STD_LOGIC_VECTOR(0 DOWNTO 0);
 		addr_RSP : out STD_LOGIC_VECTOR(5 DOWNTO 0);
@@ -148,7 +154,9 @@ component ControlSystem
 		
 		debug_leds 		: out std_logic_vector(7 downto 0);
 		btn				: in std_logic;
-		controlOutA		: in std_logic_vector(9 downto 0)
+		
+		controller_a : in std_logic_vector(13 downto 0);
+		controller_b : in std_logic_vector(13 downto 0)
 	);
 end component;
 
@@ -238,11 +246,14 @@ ControlSysteminst : ControlSystem
 	port map(
 		clk 				=> clk,
 		
-		data_out_v 		=> data_out_v,
-		data_in_v 		=> data_in_v,
-		cmd_input_v 	=> cmd_input_v,
-		cmd_output_v 	=> cmd_output_v,
-		input_enable_v => input_enable_v,
+		--GET VIDEO INFO
+		video_info_data_out 							 => video_info_data_out;
+		video_info_cmd 									 => video_info_cmd;
+
+		--SET VIDEO LAYERS DATA
+		video_layers_data_in							 => video_layers_data_in;
+		video_layers_cmd								 => video_layers_cmd;
+		video_layers_input_enabled						 => video_layers_input_enabled;
 		
 		we_RSP => we_RSP,
 		addr_RSP => addr_RSP,
@@ -270,8 +281,10 @@ ControlSysteminst : ControlSystem
 		
 		debug_leds 		=> debug_leds,
 		btn				=> btn,
+		
 		--Controllers
-		controlOutA		=> controlOutA
+		controller_a => controller_a;
+		controller_b => controller_b
 	);
 
 Port0BiController_inst: Port0BiController

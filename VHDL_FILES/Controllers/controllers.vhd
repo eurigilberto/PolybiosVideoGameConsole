@@ -1,3 +1,6 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
 entity controllers is
 
 	port(
@@ -18,7 +21,7 @@ entity controllers is
 
 end controllers;
 
-architecture Behavioral of controllerX is
+architecture Behavioral of controllers is
 
 signal current_out : std_logic_vector(1 downto 0) := "00";
 signal counter_clk : std_logic_vector(4 downto 0) := "00000";

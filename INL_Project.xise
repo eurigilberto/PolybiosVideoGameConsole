@@ -35,23 +35,23 @@
       <association xil_pn:name="Implementation" xil_pn:seqID="11"/>
     </file>
     <file xil_pn:name="VHDL_FILES/controllerX.vhd" xil_pn:type="FILE_VHDL"/>
-    <file xil_pn:name="VHDL_FILES/SD_initiator.vhd" xil_pn:type="FILE_VHDL">
+    <file xil_pn:name="VHDL_FILES/SDCardSystem/SD_initiator.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="142"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="7"/>
     </file>
-    <file xil_pn:name="VHDL_FILES/SPI_receiver.vhd" xil_pn:type="FILE_VHDL">
+    <file xil_pn:name="VHDL_FILES/SDCardSystem/SPI_receiver.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="143"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="3"/>
     </file>
-    <file xil_pn:name="VHDL_FILES/SPI_sender.vhd" xil_pn:type="FILE_VHDL">
+    <file xil_pn:name="VHDL_FILES/SDCardSystem/SPI_sender.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="144"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="2"/>
     </file>
-    <file xil_pn:name="VHDL_FILES/SD_data_reader.vhd" xil_pn:type="FILE_VHDL">
+    <file xil_pn:name="VHDL_FILES/SDCardSystem/SD_data_reader.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="145"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="4"/>
     </file>
-    <file xil_pn:name="VHDL_FILES/sd_card_port_controller.vhd" xil_pn:type="FILE_VHDL">
+    <file xil_pn:name="VHDL_FILES/SDCardSystem/sd_card_port_controller.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="146"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="1"/>
     </file>
@@ -61,9 +61,13 @@
     <file xil_pn:name="VHDL_FILES/PROCESS/Processor.ngc" xil_pn:type="FILE_NGC">
       <association xil_pn:name="Implementation" xil_pn:seqID="9"/>
     </file>
-    <file xil_pn:name="video_freq.vhd" xil_pn:type="FILE_VHDL">
+    <file xil_pn:name="VHDL_FILES/video_freq.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="79"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="5"/>
+    </file>
+    <file xil_pn:name="VHDL_FILES/Controllers/controllers.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="83"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="83"/>
     </file>
     <file xil_pn:name="ipcore_dir/LPDDR.xise" xil_pn:type="FILE_COREGENISE">
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>

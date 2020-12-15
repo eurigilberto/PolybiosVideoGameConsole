@@ -6,14 +6,12 @@ entity load_buffer_system is
 
 	port(
 		clk : in std_logic;
-		
 		enable : in std_logic;
-		
 		start_system : in std_logic;
 		
 		base_layer_address : in std_logic_vector(23 downto 0);
 		horizontal_address_offset : in std_logic_vector(6 downto 0);
-		vertical_address_offset: in std_logic_vector(8 downto 0);
+		vertical_address_offset: in std_logic_vector(7 downto 0);
 		
 		--buffer stuff
 		wea : out STD_LOGIC_VECTOR(0 DOWNTO 0);
@@ -101,15 +99,15 @@ signal port_cmd_bl : std_logic_vector(5 downto 0) := (others => '0');
 
 signal read_data_signal : std_logic;
 					
-constant horizontal_size : std_logic_vector(6 downto 0) := "1000100";
-constant vertical_size : std_logic_vector(8 downto 0) := "011010000";
+constant horizontal_size : std_logic_vector(6 downto 0) := "1010000";
+constant vertical_size : std_logic_vector(7 downto 0) := "11111111";
 
 constant horizontal_counter_limit : std_logic_vector(6 downto 0) := "0111111";
-constant	vertical_counter_limit :  std_logic_vector(8 downto 0) := "011010000";
+constant vertical_counter_limit :  std_logic_vector(8 downto 0) := "011010000";
 
 signal base_layer_address_signal : std_logic_vector(23 downto 0);
 signal horizontal_address_offset_signal : std_logic_vector(6 downto 0);
-signal vertical_address_offset_signal : std_logic_vector(8 downto 0);
+signal vertical_address_offset_signal : std_logic_vector(7 downto 0);
 
 signal port_row_address : std_logic_vector(12 downto 0);
 signal port_col_address : std_logic_vector(9 downto 0);
