@@ -7,13 +7,13 @@ entity ControlSystem is
 		clk 				: in std_logic;
 		
 		--GET VIDEO INFO
-		video_info_data_out 							 : out std_logic_vector(23 downto 0);
-		video_info_cmd 									 : in std_logic_vector(1 downto 0);
+		video_info_data_out 							 : in std_logic_vector(23 downto 0);
+		video_info_cmd 									 : out std_logic_vector(1 downto 0);
 
 		--SET VIDEO LAYERS DATA
-		video_layers_data_in							 : in std_logic_vector(23 downto 0);
-		video_layers_cmd								 : in std_logic_vector(3 downto 0);
-		video_layers_input_enabled						 : in std_logic;
+		video_layers_data_in							 : out std_logic_vector(23 downto 0);
+		video_layers_cmd								 : out std_logic_vector(3 downto 0);
+		video_layers_input_enabled						 : out std_logic;
 		
 		we_RSP : out STD_LOGIC_VECTOR(0 DOWNTO 0);
 		addr_RSP : out STD_LOGIC_VECTOR(5 DOWNTO 0);
@@ -86,20 +86,20 @@ type state is (
 					STATE_BTF,
 					STATE_BCF,
 					STATE_BSF,
-					STATE_SET_VIDR,
-					STATE_GET_VIDR,
+					STATE_SET_LAYER_PROPS,
+					STAT_GET_VIDEO_INFO,
 					STATE_SET_STACK_POINTER,
 					STATE_LOAD_SPRITE,
 					STATE_LOAD_SPRITE_WAIT,
 					STATE_LOAD_SPRITE_DUMMYSTATE,
 					state_load_sprite_ram,
+					STATE_INITIALIZE_STORE_SPRITE_WITHOUT_LOAD,
 					state_store_sprite,
 					state_store_8x8,
 					STATE_PUT_SP,
 					STATE_POP_SP,
 					STATE_PUT_SP_WAIT,
 					STATE_MOV,
-					STATE_GET_VIDR_DUM,
 --					STATE_GET_PC
 					STATE_ADDI,
 					STATE_SUBI,
@@ -155,8 +155,8 @@ signal counter_store_sprite : std_logic_vector(5 downto 0) := (others => '0');
 signal prev_store_sprite : std_logic_vector(5 downto 0) := (others => '0');
 signal counter_store_internal : std_logic_vector(1 downto 0) := (others => '0');
 
-constant horizontal_size : std_logic_vector(6 downto 0) := "1000100";
-constant vertical_size : std_logic_vector(7 downto 0) := "11010000";
+constant horizontal_size : std_logic_vector(6 downto 0) := "1010000";
+constant vertical_size : std_logic_vector(8 downto 0) := "100000000";
 
 signal stateRamStore : std_logic_vector(2 downto 0) := (others => '0');
 
@@ -164,24 +164,12 @@ signal end_sprite_system : std_logic := '0';
 
 signal layer_address : std_logic_vector(23 downto 0) := (others => '0');
 
---signal btn_flag : std_logic := '0';
-
-signal data_in_v_s 		: std_logic_vector(23 downto 0) := (others => '0');
-signal cmd_input_v_s 	: std_logic_vector(3 downto 0) := (others => '0');
-signal cmd_output_v_s 	: std_logic_vector(3 downto 0) := (others => '0');
-signal input_enable_v_s : std_logic := '0';
-
 signal lastProgramCounter : std_logic_vector(23 downto 0) := (others => '0');
 signal lastInstruction : std_logic_vector(31 downto 0) := (others => '0');
 
 signal spriteTransparent : std_logic_vector(7 downto 0) := (others => '0');
 
 begin
-
-data_in_v <= data_in_v_s;
-cmd_input_v <= cmd_input_v_s;
-cmd_output_v <= cmd_output_v_s;
-input_enable_v <= input_enable_v_s;
 
 process(clk)
 
@@ -197,14 +185,15 @@ begin
 		enable_port <= '0';
 		enA <= '0';
 		enB <= '0';
-		input_enable_v_s <= '0';
 		we_RSP <= "0";
 		mask_port <= "0000";
+
+		video_layers_input_enabled <= '0';
 		
 		if (btn = '1') then
-			debug_leds <= "000000"&controlOutA(9 downto 8);
+			debug_leds <= "000000"&controller_a(9 downto 8);
 		else
-			debug_leds <= controlOutA(7 downto 0);
+			debug_leds <= controller_a(7 downto 0);
 		end if;
 		
 		case(actual_state) is
@@ -213,7 +202,6 @@ begin
 					actual_state <= STATE_FETCH;
 					program_counter <= (others => '0');
 				end if;
-				--debug_leds <= "10100101";
 				
 			when STATE_FETCH =>
 				enable_port <= '1';
@@ -222,7 +210,6 @@ begin
 				rd_bl_in_port <= "000000";
 				mask_port <= "0000";
 				actual_state <= STATE_FETCH_WAIT;
-				--debug_leds <= "00110011";
 				
 			when STATE_FETCH_WAIT =>
 				if(busy_port = '1')then
@@ -230,22 +217,15 @@ begin
 					lastInstruction <= instruction;
 					instruction <= data_out_port;
 				end if;
-				--debug_leds <= "11001100";
 				
 			when STATE_PC_PLUS =>
---				if(btn_flag = '0' and btn = '0') then
-					program_counter <= std_logic_vector(unsigned(program_counter) + 1); 
-					if(program_counter > "11111111111111111111111")then
-						program_counter <= (others => '0');
-					end if;
-					actual_state <= STATE_FETCH;
-					--debug_leds <= "11000011";
-					lastProgramCounter <= program_counter(23 downto 0);
---					btn_flag <= '1';
---				elsif (btn = '1') then
---					debug_leds <= "11000011";
---					btn_flag <= '0';
---				end if;
+				program_counter <= std_logic_vector(unsigned(program_counter) + 1); 
+				if(program_counter > "11111111111111111111111")then
+					program_counter <= (others => '0');
+				end if;
+				actual_state <= STATE_FETCH;
+				lastProgramCounter <= program_counter(23 downto 0);
+
 			when STATE_WAIT =>
 				actual_state <= next_state;
 			when STATE_DECODE =>
@@ -387,11 +367,11 @@ begin
 					when "00011101" =>
 						addrA <= instruction(23 downto 19);
 						actual_state <= STATE_WAIT;
-						next_state <= STATE_SET_VIDR;
+						next_state <= STATE_SET_LAYER_PROPS;
 					when "00011110" =>
-						cmd_output_v_s <= instruction(18 downto 15);
+						video_info_cmd <= instruction(18 downto 17);
 						actual_state <= STATE_WAIT;
-						next_state <= STATE_GET_VIDR_DUM;
+						next_state <= STAT_GET_VIDEO_INFO;
 					when "00011111" => --GET STACK POINTER
 						addrA <= instruction(23 downto 19);
 						enA <= '1';
@@ -410,7 +390,11 @@ begin
 						addrA <= instruction(23 downto 19); -- SPRITE ADDRESS
 						addrB <= instruction(18 downto 14); -- LAYER ADDRESS
 						actual_state <= STATE_WAIT;
-						next_state <= STATE_LOAD_SPRITE;
+						if(instruction(23 downto 19) = "00000") then
+							next_state <= STATE_INITIALIZE_STORE_SPRITE_WITHOUT_LOAD;
+						else
+							next_state <= STATE_LOAD_SPRITE;
+						end if;
 					when "00100011" =>
 						addrA <= instruction(23 downto 19);
 						actual_state <= STATE_WAIT;
@@ -462,8 +446,12 @@ begin
 						stack_pointer <= std_logic_vector(unsigned(stack_pointer) - unsigned(call_write_size));
 						actual_state <= STATE_WAIT;
 						next_state <= STATE_RET;
-					when "00101110" =>
-						dinA <= "0000000000000000000000"&controlOutA;
+					when "00101110" =>-- Get controller
+						if (instruction(18) = '0') then
+							dinA <= "000000000000000000"&controller_a;
+						elsif (instruction(18) = '1') then
+							dinA <= "000000000000000000"&controller_b;
+						end if;
 						addrA <= instruction(23 downto 19);
 						enA <= '1';
 					when "00101111" =>
@@ -886,17 +874,14 @@ begin
 				enA <= '1';
 				actual_state <= STATE_PC_PLUS;
 				
-			when STATE_SET_VIDR =>
-				data_in_v_s <= doutA(23 downto 0);
-				cmd_input_v_s <= instruction(18 downto 15);
-				input_enable_v_s <= '1';
+			when STATE_SET_LAYER_PROPS =>
+				video_layers_data_in <= doutA(23 downto 0);
+				video_layers_cmd <= instruction(18 downto 15);
+				video_layers_input_enabled <= '1';
 				actual_state <= STATE_PC_PLUS;
 				
-			when STATE_GET_VIDR_DUM =>
-				actual_state <= STATE_GET_VIDR;
-				
-			when STATE_GET_VIDR =>
-				dinA <= "00000000"&data_out_v;
+			when STAT_GET_VIDEO_INFO =>
+				dinA <= "00000000"&video_info_data_out;
 				addrA <= instruction(23 downto 19);
 				enA <= '1';
 				actual_state <= STATE_PC_PLUS;
@@ -960,6 +945,20 @@ begin
 					actual_state <= STATE_STORE_SPRITE;
 				end if;
 				
+			when STATE_INITIALIZE_STORE_SPRITE_WITHOUT_LOAD=>
+				layer_address <= doutB(23 downto 0);
+				case(instruction(13 downto 12)) is
+					when "00" =>
+						counter_load_limit <= "001111";
+					when "01" =>
+						counter_load_limit <= "011111";
+					when "10" =>
+						counter_load_limit <= "011111";
+					when others =>
+						counter_load_limit <= "111111";
+				end case;
+				actual_state <= STATE_STORE_SPRITE;
+
 			when STATE_STORE_SPRITE =>
 				addrA <= instruction(11 downto 7); -- HORIZONTAL
 				addrB <= instruction(6 downto 2); -- VERTICAL
@@ -1212,25 +1211,25 @@ begin
 						actual_state <= STATE_FETCH;
 				end case;
 			when STATE_HALT =>
-				if(controlOutA(0) = '1')then
+				if(controller_a(0) = '1')then
 					--debug_leds <= lastProgramCounter(7 downto 0);
-				elsif(controlOutA(1) = '1')then
+				elsif(controller_a(1) = '1')then
 					--debug_leds <= lastProgramCounter(15 downto 8);
-				elsif(controlOutA(2) = '1')then
+				elsif(controller_a(2) = '1')then
 					--debug_leds <= lastProgramCounter(23 downto 16);
-				elsif(controlOutA(3) = '1')then
+				elsif(controller_a(3) = '1')then
 					--debug_leds <= lastInstruction(31 downto 24);
-				elsif(controlOutA(4) = '1')then
+				elsif(controller_a(4) = '1')then
 					--debug_leds <= lastInstruction(23 downto 16);
-				elsif(controlOutA(5) = '1')then
+				elsif(controller_a(5) = '1')then
 					--debug_leds <= lastInstruction(15 downto 8);
-				elsif(controlOutA(6) = '1')then
+				elsif(controller_a(6) = '1')then
 					--debug_leds <= lastInstruction(7 downto 0);
-				elsif(controlOutA(7) = '1')then
+				elsif(controller_a(7) = '1')then
 					--debug_leds <= program_counter(7 downto 0);
-				elsif(controlOutA(8) = '1')then
+				elsif(controller_a(8) = '1')then
 					--debug_leds <= program_counter(15 downto 8);
-				elsif(controlOutA(9) = '1')then
+				elsif(controller_a(9) = '1')then
 					--debug_leds <= program_counter(23 downto 16);
 				else
 					debug_leds <= "01010101";

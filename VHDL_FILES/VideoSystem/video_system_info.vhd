@@ -7,15 +7,14 @@ entity video_system_info is
 	port(
 		clk : in std_logic;
 		system_loaded : in std_logic;
-		finish_frame : in std_logic;
 		
 		data_out : out std_logic_vector(23 downto 0);
 		cmd : in std_logic_vector(1 downto 0);
 
+		finish_frame : in std_logic;
 		horizontal_pixel_coordinates_signal : in std_logic_vector(7 downto 0);
 		vertical_pixel_coordinates_signal : in std_logic_vector(7 downto 0);
-		
-		frame_counter_o : out std_logic_vector(23 downto 0)
+		vertical_blanking : in std_logic
 	);
 
 end video_system_info;
@@ -27,8 +26,6 @@ signal finish_frame_flag : std_logic := '0';
 signal frame_counter : std_logic_vector(23 downto 0) := (others => '0');
 
 begin
-
-frame_counter_o <= frame_counter;
 
 process(clk)
 begin
@@ -61,7 +58,7 @@ begin
 			when "10" =>
 				data_out <= "0000000000000000"&vertical_pixel_coordinates_signal;
 			when others =>
-				data_out <= (others => '0');
+				data_out <= "00000000000000000000000"&vertical_blanking;
 		end case;
 	end if;
 end process;

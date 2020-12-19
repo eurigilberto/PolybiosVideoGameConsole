@@ -1,6 +1,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.std_logic_unsigned.ALL;
+use IEEE.numeric_std.ALL;
 
 entity load_buffer_system is
 
@@ -100,14 +100,10 @@ signal port_cmd_bl : std_logic_vector(5 downto 0) := (others => '0');
 signal read_data_signal : std_logic;
 					
 constant horizontal_size : std_logic_vector(6 downto 0) := "1010000";
-constant vertical_size : std_logic_vector(7 downto 0) := "11111111";
+constant vertical_size : std_logic_vector(8 downto 0) := "100000000";
+constant pixel_total : std_logic_vector(14 downto 0) := "101000000000000";
 
 constant horizontal_counter_limit : std_logic_vector(6 downto 0) := "0111111";
-constant vertical_counter_limit :  std_logic_vector(8 downto 0) := "011010000";
-
-signal base_layer_address_signal : std_logic_vector(23 downto 0);
-signal horizontal_address_offset_signal : std_logic_vector(6 downto 0);
-signal vertical_address_offset_signal : std_logic_vector(7 downto 0);
 
 signal port_row_address : std_logic_vector(12 downto 0);
 signal port_col_address : std_logic_vector(9 downto 0);
@@ -127,6 +123,7 @@ begin
 
 process(clk)
 
+variable start_load_address: unsigned(27 downto 0):= (others => '0');
 variable temporal_address : std_logic_vector(27 downto 0):= (others => '0');
 variable temp : std_logic_vector(6 downto 0) := (others => '0');
 
@@ -144,21 +141,23 @@ begin
 			when STATE_IDLE =>
 				if(enable = '1') then
 					actual_state <= STATE_READ_FIRST_PART;
-					base_layer_address_signal <= base_layer_address;
-					horizontal_address_offset_signal <= horizontal_address_offset;
-					vertical_address_offset_signal <= vertical_address_offset;
 				end if;
 				busy <= '0';
 			when STATE_READ_FIRST_PART =>
 				 enable_port <= '1';
-				 temporal_address := "0000"&(base_layer_address_signal + horizontal_address_offset_signal + (vertical_address_offset_signal)*(horizontal_size));
-				 if(vertical_address_offset_signal * horizontal_size >= horizontal_size*vertical_size)then
-						temporal_address := temporal_address - horizontal_size*vertical_size;
-				 end if;
+				 
+				if(unsigned(vertical_address_offset) >= unsigned(vertical_size)) then
+					start_load_address := (unsigned(vertical_address_offset) - unsigned(vertical_size)) * unsigned(horizontal_size);
+				else
+					start_load_address := "0000000000000" &(unsigned(vertical_address_offset) * unsigned(horizontal_size));
+				end if;
+				start_load_address := unsigned(base_layer_address) + unsigned(horizontal_address_offset) + start_load_address;
+				 
+				 temporal_address := std_logic_vector(start_load_address);
 				 port_row_address <= temporal_address(23 downto 11);
 				 port_bank_address <= temporal_address(10 downto 9);
 				 port_col_address <= temporal_address(8 downto 0)&'0';
-				 temp := horizontal_size - horizontal_address_offset_signal - 1;
+				 temp := std_logic_vector(unsigned(horizontal_size) - unsigned(horizontal_address_offset) - 1);
 				 if(temp > "0111111") then
 						temp := "0111111";
 				 end if;
@@ -175,7 +174,7 @@ begin
 				end if;
 			when STATE_READING =>
 				data_buffer <= port_data_register;
-				BRAM_address <= BRAM_address + 1;
+				BRAM_address <= std_logic_vector(unsigned(BRAM_address) + 1);
 				BRAM_write_ena <= "1";
 				if(read_data_signal = '0') then
 					  BRAM_write_ena <= "0";
@@ -184,7 +183,6 @@ begin
 				end if;
 			
 			when STATE_CHECK_BL =>
-				busy <= '0';
 				if(register_counter = "111111") then
 					actual_state <= STATE_IDLE;
 					
@@ -195,30 +193,34 @@ begin
 			when STATE_READ_2 =>
 				enable_port <= '1';
 				
-				temporal_address := "0000"&(base_layer_address_signal + (vertical_address_offset_signal)*(horizontal_size));
-				if(vertical_address_offset_signal * horizontal_size >= horizontal_size*vertical_size)then
-					temporal_address := "0000"&(base_layer_address_signal + (vertical_address_offset_signal+1)*(horizontal_size));
-					temporal_address := temporal_address - horizontal_size*vertical_size;
+				if(unsigned(vertical_address_offset) >= unsigned(vertical_size)) then
+					start_load_address := (unsigned(vertical_address_offset) - unsigned(vertical_size)) * unsigned(horizontal_size);
+				else
+					start_load_address := "0000000000000" &(unsigned(vertical_address_offset) * unsigned(horizontal_size));
 				end if;
+				start_load_address := unsigned(base_layer_address) + start_load_address;
+
+				temporal_address := std_logic_vector(start_load_address);
+				
 				port_row_address <= temporal_address(23 downto 11);
 				port_bank_address <= temporal_address(10 downto 9);
 				port_col_address <= temporal_address(8 downto 0)&'0';
 				
-				temp := horizontal_counter_limit - register_counter - 1;
+				temp := std_logic_vector(unsigned(horizontal_counter_limit) - unsigned(register_counter) - 1);
 				port_cmd_bl <= temp(5 downto 0);
-				register_counter <= register_counter + temp(5 downto 0);
+				register_counter <= std_logic_vector(unsigned(register_counter) + unsigned(temp(5 downto 0)));
 				actual_state <= STATE_WAITING_READ_2;
 			
 			when STATE_WAITING_READ_2 =>
 				if(read_data_signal = '1')then
 				  actual_state <= STATE_READING_2;
 				  data_buffer <= port_data_register;
-				  BRAM_address <= BRAM_address + 1;
+				  BRAM_address <= std_logic_vector(unsigned(BRAM_address) + 1);
 				  BRAM_write_ena <= "1";
 				end if;
 			when STATE_READING_2 =>
 				data_buffer <= port_data_register;
-				BRAM_address <= BRAM_address + 1;
+				BRAM_address <= std_logic_vector(unsigned(BRAM_address) + 1);
 				BRAM_write_ena <= "1";
 				if(read_data_signal = '0') then
 					  BRAM_write_ena <= "0";

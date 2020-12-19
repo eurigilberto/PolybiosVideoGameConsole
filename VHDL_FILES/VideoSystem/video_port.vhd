@@ -15,8 +15,8 @@ entity video_port is
 		horizontal_pixel_coord: out std_logic_vector(7 downto 0);
 		vertical_pixel_coord: out std_logic_vector(7 downto 0);
 		blank : out std_logic;
-		finish_buffer : out std_logic;
-		finish_frame : out std_logic
+		finish_frame : out std_logic;
+		vertical_blanking : out std_logic
 	);
 
 end video_port;
@@ -49,7 +49,6 @@ process(clk)
 begin
 
 	if (rising_edge(clk)) then
-		finish_buffer <= '0';
 		finish_frame <= '0';
 		-- Horizontal Counter
 		if (horizontalCounter >= horizontalLimit) then
@@ -68,11 +67,6 @@ begin
 			end if;
 		end if;
 		
-		-- finish_buffer
-		if(horizontalCounter = horizontalVisibleLimit+4 and verticalCounter(1 downto 0) = "00" and horizontalCounter(1 downto 0) = "11" and verticalCounter <= verticalVisibleLimit) then
-			finish_buffer <= '1';
-		end if;
-		
 		--finish Frame
 		if(horizontalCounter = horizontalVisibleLimit+4 and verticalCounter = verticalVisibleLimit) then
 			finish_frame <= '1';
@@ -85,17 +79,23 @@ end process;
 -- the layer buffers have time to retrieve the corrrect values when needed. The problem comes from the fact that when 
 -- an address is set the buffer takes 1 cycle to retrieve the data, and in that cycle the system would have already requested the first pixel
 -- and because it is not the correct value, a vertical line of pixels out of place would be drawn.
-horizontal_pixel_coord <= horizontalCounter(9 downto 2) when horizontalCounter(9 downto 2) < "01001111" else
-						  "00000000";
+horizontal_pixel_coord <= horizontalCounter(9 downto 2) when horizontalCounter <= horizontalVisibleLimit else
+						  (others => '0');
 
 -- Setting the vertical pixel coordinate used in the system
-vertical_pixel_coord <= verticalCounter(9 downto 2);
+-- The vertical pixel coord is clamped in this way to make sure that the buffer loading system does not continue to load new layer lines
+-- when they are not needed.
+vertical_pixel_coord <= verticalCounter(9 downto 2) when verticalCounter <= verticalVisibleLimit else
+						(others => '0');
 
 -- Setting syncronization signals
 Hsync <= '0' when ((horizontalCounter >= hsyncLowerLimit) AND (horizontalCounter < hsyncUpperLimit)) else
 						  '1';
 Vsync <= '0' when ((verticalCounter > vsyncLowerLimit) AND (verticalCounter <= vsyncUpperLimit)) else
 						  '1';
+
+vertical_blanking <= '1' when visible_region = '0' and verticalCounter > vsyncUpperLimit else
+					 '0';
 
 visible_region <= '1' when ((verticalCounter <= verticalVisibleLimit) AND (horizontalCounter <= horizontalVisibleLimit)) else
 				  '0';

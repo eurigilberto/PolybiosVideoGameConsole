@@ -73,7 +73,6 @@ signal 	horizontal_pixel_coord: std_logic_vector(7 downto 0);
 signal	vertical_pixel_coord: std_logic_vector(7 downto 0);
 signal 	color : std_logic_vector(7 downto 0);
 signal 	blank : std_logic;
-signal	finish_buffer : std_logic;
 --video port
 
 
@@ -94,14 +93,16 @@ signal address_b_video_layers : video_layers_buffer_address := (others => (other
 signal data_out_b_video_layers : video_layers_buffer_data := (others => (others => '0'));
 
 --Layer Info signals
-signal layer_index : std_logic_vector(1 downto 0) := "00";
-signal selected_layer_address : std_logic_vector(23 downto 0) := (others => '0');
-signal selected_layer_horizontal_address_offset : std_logic_vector(6 downto 0) := (others => '0');
-signal selected_layer_vertical_address_offset : std_logic_vector(7 downto 0) := (others => '0');
+signal video_layers_address: video_layers_address;
+signal video_layers_horizontal_address_offset: video_layers_horizontal_address_offset;
+signal video_layers_vertical_address_offset: video_layers_vertical_address_offset;
+
 signal layers_transparency_color : video_layers_transparent_color := (others => (others => '0'));
 
 --pixel that is going to appear on screen
 signal pixel : std_logic_vector(7 downto 0);
+
+signal vertical_blanking : std_logic;
 
 begin
 
@@ -120,8 +121,7 @@ video_system_info_inst: video_system_info
 
 		horizontal_pixel_coordinates_signal => horizontal_pixel_coord,
 		vertical_pixel_coordinates_signal => vertical_pixel_coord,
-		
-		frame_counter_o => frame_counter
+		vertical_blanking => vertical_blanking
 	);
 
 layer_configuration_system_inst: layer_configuration_system
@@ -133,17 +133,15 @@ layer_configuration_system_inst: layer_configuration_system
 		data_in => video_layers_data_in,
 		input_enable => video_layers_input_enabled,
 
-		layer_index => layer_index,
-
-		layer_address_out => selected_layer_address,
-		horizontal_address_offset_out => selected_layer_horizontal_address_offset,
-		vertical_address_offset_out => selected_layer_vertical_address_offset,
+		video_layers_address_out => video_layers_address,
+		video_layers_horizontal_address_offset_out => video_layers_horizontal_address_offset,
+		video_layers_vertical_address_offset_out => video_layers_vertical_address_offset,
 		transparent_color_out=> layers_transparency_color
 	);
 
 pixel_getter_inst: pixel_getter
 	port map(
-			clk => video_clock_2x,
+			clk => video_clk,
 
 			layers_transparent_color => layers_transparency_color,
 
@@ -164,16 +162,13 @@ video_buffer_controller_inst: video_buffer_controller
 		system_loaded => system_loaded,
 		enable_load => enable_load,
 		
-		finish_buffer => finish_buffer,
-		
 		write_enable_a_video_layers => write_enable_a_video_layers,
 		address_a_video_layers => address_a_video_layers,
 		data_in_a_video_layers => data_in_a_video_layers,
 
-		layer_selector => layer_index,
-		layer_address_selected_layer => selected_layer_address,
-		horizontal_address_offset_selected_layer => selected_layer_horizontal_address_offset,
-		vertical_address_offset_selected_layer => selected_layer_vertical_address_offset,
+		video_layers_address => video_layers_address,
+		video_layers_horizontal_address_offset => video_layers_horizontal_address_offset,
+		video_layers_vertical_address_offset => video_layers_vertical_address_offset,
 
 		wea_load => wea_load,
 		addra_block_load => addra_block_load,
@@ -240,80 +235,80 @@ video_port_inst : video_port
 		horizontal_pixel_coord => horizontal_pixel_coord,
 		vertical_pixel_coord => vertical_pixel_coord,
 		blank => blank,
-		finish_buffer => finish_buffer,
-		finish_frame => finish_frame
+		finish_frame => finish_frame,
+		vertical_blanking => vertical_blanking
 	);
 
 video_buffer_0 : video_buffer
 
-  PORT MAP (
-	clka => video_clock_2x,
-	
-    wea(0) => write_enable_a_video_layers(0),
-    addra => address_a_video_layers(0),
-    dina => data_in_a_video_layers(0),
-	douta => open,
-	
-	clkb => video_clock_2x_neg,
-	
-    web => "0",
-    addrb => address_b_video_layers(0),
-    dinb => (others => '0'),
-    doutb => data_out_b_video_layers(0)
-  );
+PORT MAP (
+clka => video_clock_2x,
+
+wea(0) => write_enable_a_video_layers(0),
+addra => address_a_video_layers(0),
+dina => data_in_a_video_layers(0),
+douta => open,
+
+clkb => video_clock_2x_neg,
+
+web => "0",
+addrb => address_b_video_layers(0),
+dinb => (others => '0'),
+doutb => data_out_b_video_layers(0)
+);
 
 video_buffer_1 : video_buffer
 
-  PORT MAP (
-	clka => video_clock_2x,
-	
-    wea(0) => write_enable_a_video_layers(1),
-    addra => address_a_video_layers(1),
-    dina => data_in_a_video_layers(1),
-	douta => open,
-	
-	clkb => video_clock_2x_neg,
-	
-    web => "0",
-    addrb => address_b_video_layers(1),
-    dinb => (others => '0'),
-    doutb => data_out_b_video_layers(1)
-  );
+PORT MAP (
+clka => video_clock_2x,
+
+wea(0) => write_enable_a_video_layers(1),
+addra => address_a_video_layers(1),
+dina => data_in_a_video_layers(1),
+douta => open,
+
+clkb => video_clock_2x_neg,
+
+web => "0",
+addrb => address_b_video_layers(1),
+dinb => (others => '0'),
+doutb => data_out_b_video_layers(1)
+);
 
 video_buffer_2 : video_buffer
 
-  PORT MAP (
-	clka => video_clock_2x,
-	
-    wea(0) => write_enable_a_video_layers(2),
-    addra => address_a_video_layers(2),
-    dina => data_in_a_video_layers(2),
-	douta => open,
-	
-	clkb => video_clock_2x_neg,
-	
-    web => "0",
-    addrb => address_b_video_layers(2),
-    dinb => (others => '0'),
-    doutb => data_out_b_video_layers(2)
-  );
+PORT MAP (
+clka => video_clock_2x,
+
+wea(0) => write_enable_a_video_layers(2),
+addra => address_a_video_layers(2),
+dina => data_in_a_video_layers(2),
+douta => open,
+
+clkb => video_clock_2x_neg,
+
+web => "0",
+addrb => address_b_video_layers(2),
+dinb => (others => '0'),
+doutb => data_out_b_video_layers(2)
+);
 
 video_buffer_3 : video_buffer
 
-  PORT MAP (
-    clka => video_clock_2x,
-	
-	wea(0) => write_enable_a_video_layers(3),
-    addra => address_a_video_layers(3),
-	dina => data_in_a_video_layers(3),
-	douta => open,
-	
-    clkb => video_clock_2x_neg,
-	
-	web => "0",
-    addrb => address_b_video_layers(3),
-    dinb => (others => '0'),
-	doutb => data_out_b_video_layers(3)
-  );
+PORT MAP (
+clka => video_clock_2x,
+
+wea(0) => write_enable_a_video_layers(3),
+addra => address_a_video_layers(3),
+dina => data_in_a_video_layers(3),
+douta => open,
+
+clkb => video_clock_2x_neg,
+
+web => "0",
+addrb => address_b_video_layers(3),
+dinb => (others => '0'),
+doutb => data_out_b_video_layers(3)
+);
 
 end Behavioral;

@@ -1,0 +1,28 @@
+Command line:
+   video_buffer_simulation_isim_beh.exe
+     -simmode  gui
+     -simrunnum  0
+     -socket  55991
+
+Fri Dec 18 13:35:15 2020
+
+
+ Elaboration Time: 0.04 sec
+
+ Current Memory Usage: 199.135 Meg
+
+ Total Signals          : 48
+ Total Nets             : 499
+ Total Signal Drivers   : 33
+ Total Blocks           : 5
+ Total Primitive Blocks : 4
+ Total Processes        : 23
+ Total Traceable Variables  : 14
+ Total Scalar Nets and Variables : 983
+
+ Total Simulation Time: 0.05 sec
+
+ Current Memory Usage: 276.734 Meg
+
+Fri Dec 18 13:35:47 2020
+

@@ -10,13 +10,13 @@ entity Processor is
 		calib_done 										 : in std_logic;
 
 		--GET VIDEO INFO
-		video_info_data_out 							 : out std_logic_vector(23 downto 0);
-		video_info_cmd 									 : in std_logic_vector(1 downto 0);
+		video_info_data_out 							 : in std_logic_vector(23 downto 0);
+		video_info_cmd 									 : out std_logic_vector(1 downto 0);
 
 		--SET VIDEO LAYERS DATA
-		video_layers_data_in							 : in std_logic_vector(23 downto 0);
-		video_layers_cmd								 : in std_logic_vector(3 downto 0);
-		video_layers_input_enabled						 : in std_logic;
+		video_layers_data_in							 : out std_logic_vector(23 downto 0);
+		video_layers_cmd								 : out std_logic_vector(3 downto 0);
+		video_layers_input_enabled						 : out std_logic;
 
 		--Port 0 CMD
 		c3_p0_cmd_clk                           : out std_logic;
@@ -120,13 +120,13 @@ component ControlSystem
 		clk 				: in std_logic;
 		
 		--GET VIDEO INFO
-		video_info_data_out 							 : out std_logic_vector(23 downto 0);
-		video_info_cmd 									 : in std_logic_vector(1 downto 0);
+		video_info_data_out 				: in std_logic_vector(23 downto 0);
+		video_info_cmd 						: out std_logic_vector(1 downto 0);
 
 		--SET VIDEO LAYERS DATA
-		video_layers_data_in							 : in std_logic_vector(23 downto 0);
-		video_layers_cmd								 : in std_logic_vector(3 downto 0);
-		video_layers_input_enabled						 : in std_logic;
+		video_layers_data_in				: out std_logic_vector(23 downto 0);
+		video_layers_cmd					: out std_logic_vector(3 downto 0);
+		video_layers_input_enabled			: out std_logic;
 		
 		we_RSP : out STD_LOGIC_VECTOR(0 DOWNTO 0);
 		addr_RSP : out STD_LOGIC_VECTOR(5 DOWNTO 0);
@@ -176,22 +176,22 @@ COMPONENT RAM_PROCESSOR
 END COMPONENT;
 
 -- port signals
-signal enable_port 	: std_logic 							:= '0';
-signal cmd_port 		: std_logic_vector(2 downto 0) 	:= "100";
-signal data_in_port 	: std_logic_vector(31 downto 0) 	:= (others => '0');
-signal data_out_port : std_logic_vector(31 downto 0) 	:= (others => '0');
-signal address_port 	: std_logic_vector(23 downto 0) 	:= (others => '0');
-signal mask_port 		: std_logic_vector(3 downto 0) 	:= (others => '0');
-signal rd_bl_in_port : std_logic_Vector(5 downto 0) 	:= (others => '0');
+signal enable_port 		: std_logic 							:= '0';
+signal cmd_port 		: std_logic_vector(2 downto 0) 			:= "100";
+signal data_in_port 	: std_logic_vector(31 downto 0) 		:= (others => '0');
+signal data_out_port 	: std_logic_vector(31 downto 0) 		:= (others => '0');
+signal address_port 	: std_logic_vector(23 downto 0) 		:= (others => '0');
+signal mask_port 		: std_logic_vector(3 downto 0) 			:= (others => '0');
+signal rd_bl_in_port 	: std_logic_Vector(5 downto 0) 			:= (others => '0');
 signal busy_port		: std_logic								:= '0';
 -- port signals
 
 -- RAM ports
-signal addrA			: std_logic_vector(4 downto 0) 	:= (others => '0');
-signal addrB			: std_logic_vector(4 downto 0) 	:= (others => '0');
+signal addrA			: std_logic_vector(4 downto 0) 			:= (others => '0');
+signal addrB			: std_logic_vector(4 downto 0) 			:= (others => '0');
 
-signal dinA				: std_logic_vector(31 downto 0)  := (others => '0');
-signal dinB				: std_logic_vector(31 downto 0)  := (others => '0');
+signal dinA				: std_logic_vector(31 downto 0)  		:= (others => '0');
+signal dinB				: std_logic_vector(31 downto 0)  		:= (others => '0');
 
 signal doutA			: std_logic_vector(31 downto 0);
 signal doutB			: std_logic_vector(31 downto 0);
@@ -199,8 +199,8 @@ signal doutB			: std_logic_vector(31 downto 0);
 signal enA				: std_logic								:= '0';
 signal enB				: std_logic								:= '0';
 
-signal enAv				: std_logic_vector(0 downto 0)	:= "0";
-signal enBv				: std_logic_vector(0 downto 0)	:= "0";
+signal enAv				: std_logic_vector(0 downto 0)			:= "0";
+signal enBv				: std_logic_vector(0 downto 0)			:= "0";
 -- RAM ports
 
 -- RAM sprite
@@ -247,13 +247,13 @@ ControlSysteminst : ControlSystem
 		clk 				=> clk,
 		
 		--GET VIDEO INFO
-		video_info_data_out 							 => video_info_data_out;
-		video_info_cmd 									 => video_info_cmd;
+		video_info_data_out 							 => video_info_data_out,
+		video_info_cmd 									 => video_info_cmd,
 
 		--SET VIDEO LAYERS DATA
-		video_layers_data_in							 => video_layers_data_in;
-		video_layers_cmd								 => video_layers_cmd;
-		video_layers_input_enabled						 => video_layers_input_enabled;
+		video_layers_data_in							 => video_layers_data_in,
+		video_layers_cmd								 => video_layers_cmd,
+		video_layers_input_enabled						 => video_layers_input_enabled,
 		
 		we_RSP => we_RSP,
 		addr_RSP => addr_RSP,
@@ -283,7 +283,7 @@ ControlSysteminst : ControlSystem
 		btn				=> btn,
 		
 		--Controllers
-		controller_a => controller_a;
+		controller_a => controller_a,
 		controller_b => controller_b
 	);
 

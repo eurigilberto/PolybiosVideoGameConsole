@@ -9,20 +9,28 @@ entity SD_CARD_CLK is
 		sclk_reset: in std_logic;
 		clk_posedge: out std_logic;
 		clk_negedge: out std_logic;
-		clk_count_limit: in std_logic_vector(7 downto 0)
+		clk_freq_selector: in std_logic
 	);
 
 end SD_CARD_CLK;
 
 architecture Behavioral of SD_CARD_CLK is
 
-signal clk_counter: std_logic_vector(7 downto 0):= "00000000";
+constant clk_400khz_count: std_logic_vector(8 downto 0):="101000101";
+constant clk_20Mhz_count: std_logic_vector(8 downto 0):="000000111";
+
+signal clk_counter: std_logic_vector(8 downto 0):= (others => '0');
 
 signal clk_posedge_s : std_logic := '0';
 signal clk_negedge_s : std_logic := '1';
 signal clk_SD : std_logic := '0';
 
+signal clk_count_limit: std_logic_vector(8 downto 0):= (others => '0');
+
 begin
+
+clk_count_limit <= clk_400khz_count when clk_freq_selector = '0' else
+						 clk_20Mhz_count;
 
 clk_posedge <= clk_SD;
 clk_negedge <= not(clk_SD);

@@ -10,13 +10,13 @@ component Processor
 		calib_done 										 : in std_logic;
 		
 		--GET VIDEO INFO
-		video_info_data_out : out std_logic_vector(23 downto 0);
-		video_info_cmd: in std_logic_vector(1 downto 0);
+		video_info_data_out 							 : in std_logic_vector(23 downto 0);
+		video_info_cmd 									 : out std_logic_vector(1 downto 0);
 
 		--SET VIDEO LAYERS DATA
-		video_layers_data_in: in std_logic_vector(23 downto 0);
-		video_layers_cmd: in std_logic_vector(3 downto 0);
-		video_layers_input_enabled: in std_logic;
+		video_layers_data_in							 : out std_logic_vector(23 downto 0);
+		video_layers_cmd								 : out std_logic_vector(3 downto 0);
+		video_layers_input_enabled						 : out std_logic;
 
 		--Port 0 CMD
 		c3_p0_cmd_clk                           : out std_logic;
@@ -51,11 +51,8 @@ component Processor
 		debug_leds 		: out std_logic_vector(7 downto 0);
         btn				: in std_logic;
         
-        out_p6 : out std_logic_vector(3 downto 0);
-        input_p6 : in std_logic_vector(3 downto 0);
-
-        out_p7 : out std_logic_vector(3 downto 0);
-        input_p7 : in std_logic_vector(3 downto 0)
+        controller_a : in std_logic_vector(13 downto 0);
+		controller_b : in std_logic_vector(13 downto 0)
 	);
 end component;
 
@@ -109,8 +106,8 @@ component freqDiv
 
 	port(
 		clk : in std_logic;
-		clkOut1P : out std_logic;
-		clkOut2P : out std_logic
+		clkOut1P : out std_logic
+		--clkOut2P : out std_logic
 	);
 
 end component;
@@ -122,7 +119,7 @@ component SD_CARD_CLK
 		sclk_reset: in std_logic;
 		clk_posedge: out std_logic;
 		clk_negedge: out std_logic;
-		clk_count_limit: in std_logic_vector(7 downto 0)
+		clk_freq_selector: in std_logic
 	);
 
 end component;
@@ -144,7 +141,7 @@ component SD_initiator
 
       clk_posedge: in std_logic;
 		clk_negedge: in std_logic;
-		clk_count_limit: out std_logic_vector(7 downto 0);
+		clk_freq_selector: out std_logic;
 		sclk_reset_out: out std_logic;
 		
 		c3_p2_cmd_clk                           : out std_logic;
@@ -291,7 +288,7 @@ component controllers is
         --header p6
 		  out_p6 : out std_logic_vector(3 downto 0);
         input_p6 : in std_logic_vector(3 downto 0);
-        constroller_a : out std_logic_vector(13 downto 0);
+        controller_a : out std_logic_vector(13 downto 0);
         --header p7
         out_p7 : out std_logic_vector(3 downto 0);
         input_p7 : in std_logic_vector(3 downto 0);

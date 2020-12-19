@@ -1,0 +1,1 @@
+-intstyle "ise" -incremental -lib "secureip" -o "/home/ise/ISE_Share/PolybiosVideoGameConsole/VHDL_FILES/VIDEO/video_buffer_simulation_isim_beh.exe" -prj "/home/ise/ISE_Share/PolybiosVideoGameConsole/VHDL_FILES/VIDEO/video_buffer_simulation_beh.prj" "work.video_buffer_simulation" 

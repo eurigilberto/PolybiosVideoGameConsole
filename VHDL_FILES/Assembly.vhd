@@ -15,11 +15,10 @@ entity Assembly is
 		
 		dataLED: out std_logic_vector(7 downto 0);
 		
-		btn_reader : in std_logic_vector(5 downto 0);
+		selector_button : in std_logic;
+		processor_button : in std_logic;
 
 		SevenSegmentEnable : out std_logic_vector(2 downto 0);
-		
-		DPSwitch : in std_logic_vector(7 downto 0);
         
 --		calib_done_O : out std_logic;
 --		error : out std_logic;
@@ -62,13 +61,6 @@ signal choose : std_logic := '0';
 signal dataLEDS : std_logic_vector(7 downto 0) := (others => '0');
 signal dataLEDsignal : std_logic_vector(7 downto 0) := (others => '0');
 signal proLEDS : std_logic_vector(7 downto 0) := (others => '0');
-
---CHANGE REGISTERS VIDEO SYSTEM
-	signal data_out_v : std_logic_vector(23 downto 0);
-	signal data_in_v : std_logic_vector(23 downto 0);
-	signal cmd_input_v : std_logic_vector(3 downto 0);
-	signal cmd_output_v : std_logic_vector(3 downto 0);
-	signal input_enable_v : std_logic;
 
 --MCB constant values
     constant C3_P0_MASK_SIZE           : integer := 4;
@@ -163,13 +155,11 @@ signal write_done : std_logic := '0';
 
 signal SevenSegmentEnableSignal : std_logic_vector(2 downto 0);
 
-signal clk : std_logic;
-
 --SDCARD freq
     signal sclk_reset: std_logic;
     signal clk_posedge: std_logic;
     signal clk_negedge: std_logic;
-    signal clk_count_limit: std_logic_vector(7 downto 0);
+    signal clk_freq_selector: std_logic;
 
 signal video_clock : std_logic;
 signal video_clock_2x : std_logic;
@@ -178,36 +168,36 @@ signal controller_a_signal : std_logic_vector(13 downto 0);
 signal controller_b_signal : std_logic_vector(13 downto 0);
 
 --GET VIDEO INFO
-video_info_data_out : std_logic_vector(23 downto 0);
-video_info_cmd: std_logic_vector(1 downto 0);
+signal video_info_data_out : std_logic_vector(23 downto 0);
+signal video_info_cmd: std_logic_vector(1 downto 0);
 
 --SET VIDEO LAYERS DATA
-video_layers_data_in: std_logic_vector(23 downto 0);
-video_layers_cmd: std_logic_vector(3 downto 0);
-video_layers_input_enabled: std_logic;
+signal video_layers_data_in: std_logic_vector(23 downto 0);
+signal video_layers_cmd: std_logic_vector(3 downto 0);
+signal video_layers_input_enabled: std_logic;
 
 begin
 
 SevenSegmentEnable(2) <= not(write_done);
-SevenSegmentEnable(1) <= not(btn_reader(2));
-SevenSegmentEnable(0) <= btn_reader(0);
+SevenSegmentEnable(1) <= not(selector_button);
+SevenSegmentEnable(0) <= processor_button;
 
 dataLEDsignal <= dataLEDS when write_done = '0' else
 			  errorLEDS;
 			  
-dataLED <= dataLEDsignal when btn_reader(2) = '0' else
+dataLED <= dataLEDsignal when selector_button = '0' else
               proLEDS;
               
 controller_system_inst: controllers
     port map(
-        clk                                     => video_clock_2x;
+        clk                                     => video_clock_2x,
         
-        out_p6                                  => out_p6;
-        input_p6                                => input_p6;
-        constroller_a                           => controller_a_signal;
+        out_p6                                  => out_p6,
+        input_p6                                => input_p6,
+        controller_a                           => controller_a_signal,
 
-        out_p7                                  => out_p7;
-        input_p7                                => input_p7;
+        out_p7                                  => out_p7,
+        input_p7                                => input_p7,
         controller_b                            => controller_b_signal
     );
 
@@ -257,7 +247,7 @@ Processor_inst: Processor
 		c3_p0_rd_error                          => c3_p0_rd_error,
 		
 		debug_leds 		                        => proLEDS,--dataLED,
-        btn				                        => not(btn_reader(0)),
+      btn				                        => not(processor_button),
         
 		controller_a                            => controller_a_signal,
 		controller_b			                => controller_b_signal
@@ -266,11 +256,11 @@ Processor_inst: Processor
 SD_CARD_CLK_inst : SD_CARD_CLK
 
 	port map(
-        clk => clk,
+      clk => video_clock_2x,
 		sclk_reset => sclk_reset,  
 		clk_posedge => clk_posedge, 
 		clk_negedge => clk_negedge,
-		clk_count_limit => clk_count_limit
+		clk_freq_selector => clk_freq_selector
 	);
 
 LPDDR_inst : LPDDR
@@ -387,7 +377,7 @@ LPDDR_inst : LPDDR
 
 SD_initiator_inst : SD_initiator
 port map(
-    clk => clk,
+    clk => video_clock_2x,
     sdcard_cs => sdcard_cs,
     sdcard_sclk => sdcard_sclk,
     sdcard_mosi => sdcard_mosi,
@@ -401,7 +391,7 @@ port map(
 
     clk_posedge => clk_posedge,
     clk_negedge => clk_negedge,
-    clk_count_limit => clk_count_limit,
+    clk_freq_selector => clk_freq_selector,
     sclk_reset_out => sclk_reset,
     
     c3_p2_cmd_clk                           => c3_p2_cmd_clk,
@@ -430,8 +420,7 @@ port map(
 freqDiv_inst: freqDiv
     port map(
         clk => clks,
-        clkOut1P =>video_clock_2x,
-        clkOut2P =>clk
+        clkOut1P =>video_clock_2x
     );
 
 video_freq_inst: video_freq
@@ -459,46 +448,6 @@ VideoSystemInst : VideoSystem
 		video_layers_data_in => video_layers_data_in,
 		video_layers_cmd => video_layers_cmd,
 		video_layers_input_enabled => video_layers_input_enabled,
-		
-		--CMD
-		c3_p3_cmd_clk => c3_p3_cmd_clk,
-		c3_p3_cmd_en => c3_p3_cmd_en,
-		c3_p3_cmd_instr => c3_p3_cmd_instr, 
-		c3_p3_cmd_bl => c3_p3_cmd_bl,
-		c3_p3_cmd_byte_addr => c3_p3_cmd_byte_addr, 
-		c3_p3_cmd_empty => c3_p3_cmd_empty,
-		c3_p3_cmd_full => c3_p3_cmd_full,
-			
-		--READ
-		c3_p3_rd_clk => c3_p3_rd_clk,
-		c3_p3_rd_en => c3_p3_rd_en,
-		c3_p3_rd_data => c3_p3_rd_data,
-		c3_p3_rd_full => c3_p3_rd_full,
-		c3_p3_rd_empty => c3_p3_rd_empty,
-		c3_p3_rd_count => c3_p3_rd_count,
-		c3_p3_rd_overflow => c3_p3_rd_overflow,
-		c3_p3_rd_error => c3_p3_rd_error
-	);
-
-	port map(
-		video_clock_2x => video_clock_2x,
-		
-		system_loaded => write_done,
-		
-		video_clk => video_clock,
-		
-		HSync => HSync,
-		VSync => VSync,
-		Red => Red,
-		Green => Green,
-		Blue => Blue,
-		
-		--CHANGE REGISTERS
-		data_out => data_out_v,
-		data_in => data_in_v,
-		cmd_input => cmd_input_v,
-		cmd_output => cmd_output_v,
-		input_enable => input_enable_v,
 		
 		--CMD
 		c3_p3_cmd_clk => c3_p3_cmd_clk,

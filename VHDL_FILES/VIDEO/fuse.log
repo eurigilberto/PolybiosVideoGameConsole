@@ -1,0 +1,24 @@
+Running: /opt/Xilinx/14.7/ISE_DS/ISE/bin/lin64/unwrapped/fuse -relaunch -intstyle "ise" -incremental -lib "secureip" -o "/home/ise/ISE_Share/PolybiosVideoGameConsole/VHDL_FILES/VIDEO/video_buffer_simulation_isim_beh.exe" -prj "/home/ise/ISE_Share/PolybiosVideoGameConsole/VHDL_FILES/VIDEO/video_buffer_simulation_beh.prj" "work.video_buffer_simulation" 
+ISim P.20131013 (signature 0xfbc00daa)
+Number of CPUs detected in this system: 1
+Turning on mult-threading, number of parallel sub-compilation jobs: 0 
+Determining compilation order of HDL files
+Parsing VHDL file "/home/ise/ISE_Share/PolybiosVideoGameConsole/VHDL_FILES/VIDEO/../VideoSystem/video_system_types.vhd" into library work
+Parsing VHDL file "/home/ise/ISE_Share/PolybiosVideoGameConsole/VHDL_FILES/VIDEO/../VideoSystem/video_buffer_controller.vhd" into library work
+Parsing VHDL file "/home/ise/ISE_Share/PolybiosVideoGameConsole/VHDL_FILES/VIDEO/video_buffer_simulation.vhd" into library work
+Starting static elaboration
+Completed static elaboration
+Fuse Memory Usage: 96860 KB
+Fuse CPU Usage: 1000 ms
+Compiling package standard
+Compiling package std_logic_1164
+Compiling package numeric_std
+Compiling package video_system_types
+Compiling architecture behavioral of entity video_buffer_controller [video_buffer_controller_default]
+Compiling architecture behavior of entity video_buffer_simulation
+Time Resolution for simulation is 1ps.
+Compiled 7 VHDL Units
+Built simulation executable /home/ise/ISE_Share/PolybiosVideoGameConsole/VHDL_FILES/VIDEO/video_buffer_simulation_isim_beh.exe
+Fuse Memory Usage: 113752 KB
+Fuse CPU Usage: 1170 ms
+GCC CPU Usage: 130 ms

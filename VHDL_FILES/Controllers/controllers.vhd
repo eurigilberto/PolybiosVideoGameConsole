@@ -1,5 +1,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.numeric_std.all;
 
 entity controllers is
 
@@ -10,7 +11,7 @@ entity controllers is
 		out_p6 : out std_logic_vector(3 downto 0);
         input_p6 : in std_logic_vector(3 downto 0);
         
-        constroller_a : out std_logic_vector(13 downto 0);
+        controller_a : out std_logic_vector(13 downto 0);
         
         --header p7
         out_p7 : out std_logic_vector(3 downto 0);
@@ -41,21 +42,24 @@ out_p7 <= out_p;
 process(clk)
 begin
     if(rising_edge(clk)) then
-        current_out <= to_unsigned(current_out) + 1;
+        current_out <= std_logic_vector(unsigned(current_out) + 1);
 
         case current_out is
             when "00" =>
-                constroller_a(3 downto 0) <= input_p6;
-                constroller_b(3 downto 0) <= input_p7;
+               controller_a(3 downto 0) <= input_p6;
+               controller_b(3 downto 0) <= input_p7;
             when "01" =>
-                constroller_a(7 downto 4) <= input_p6;
-                constroller_b(7 downto 4) <= input_p7;
+               controller_a(7 downto 4) <= input_p6;
+               controller_b(7 downto 4) <= input_p7;
             when "10" =>
-                constroller_a(11 downto 8) <= input_p6;
-                constroller_b(11 downto 8) <= input_p7;
+               controller_a(11 downto 8) <= input_p6;
+               controller_b(11 downto 8) <= input_p7;
             when "11" =>
-                constroller_a(15 downto 12) <= input_p6;
-                constroller_b(15 downto 12) <= input_p7;
+               controller_a(13 downto 12) <= input_p6(1 downto 0);
+               controller_b(13 downto 12) <= input_p7(1 downto 0);
+				when others =>
+					controller_a <= (others => '0');
+					controller_b <= (others => '0');
         end case;
     end if;
 end process;

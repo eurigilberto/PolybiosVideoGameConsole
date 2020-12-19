@@ -32,8 +32,7 @@ component video_system_info
 
 		horizontal_pixel_coordinates_signal : in std_logic_vector(7 downto 0);
 		vertical_pixel_coordinates_signal : in std_logic_vector(7 downto 0);
-		
-		frame_counter_o : out std_logic_vector(23 downto 0)
+		vertical_blanking : in std_logic
 	);
 end component;
 
@@ -43,11 +42,10 @@ component layer_configuration_system
 		cmd_in: in std_logic_vector(3 downto 0);
       data_in: in std_logic_vector(23 downto 0);
 		input_enable : in std_logic;
-		layer_index: in std_logic_vector(1 downto 0);
-		layer_address_out: out std_logic_vector(23 downto 0);
-		horizontal_address_offset_out: out std_logic_vector(6 downto 0);
-		vertical_address_offset_out: out std_logic_vector(7 downto 0);
-		transparent_color_out: out video_layers_transparent_color
+		video_layers_address_out: 					out video_layers_address;
+		video_layers_horizontal_address_offset_out: out video_layers_horizontal_address_offset;
+		video_layers_vertical_address_offset_out: 	out video_layers_vertical_address_offset;
+		transparent_color_out: 						out video_layers_transparent_color
 	);
 end component;
 
@@ -70,14 +68,12 @@ component video_buffer_controller
 		clk : std_logic;
 		system_loaded : std_logic;
 		enable_load : out std_logic;
-		finish_buffer : in std_logic;
 		write_enable_a_video_layers: out std_logic_vector(3 downto 0);
 		address_a_video_layers: out video_layers_buffer_address;
 		data_in_a_video_layers: out video_layers_buffer_data;
-		layer_selector: out std_logic_vector(1 downto 0);
-		layer_address_selected_layer: in std_logic_vector(23 downto 0);
-		horizontal_address_offset_selected_layer: in std_logic_vector(6 downto 0);
-		vertical_address_offset_selected_layer: in std_logic_vector(7 downto 0);
+		video_layers_address: 					in video_layers_address;
+		video_layers_horizontal_address_offset: in video_layers_horizontal_address_offset;
+		video_layers_vertical_address_offset: 	in video_layers_vertical_address_offset;
 		--This comes from the buffer loader
 		wea_load : in std_logic_vector(0 downto 0);
 		addra_block_load : in STD_LOGIC_VECTOR(5 DOWNTO 0);
@@ -137,8 +133,8 @@ component video_port
 		horizontal_pixel_coord: out std_logic_vector(7 downto 0);
 		vertical_pixel_coord: out std_logic_vector(7 downto 0);
 		blank : out std_logic;
-		finish_buffer : out std_logic;
-		finish_frame : out std_logic
+		finish_frame : out std_logic;
+		vertical_blanking : out std_logic
 	);
 end component;
 

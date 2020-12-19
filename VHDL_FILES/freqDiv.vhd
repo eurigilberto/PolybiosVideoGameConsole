@@ -8,8 +8,8 @@ entity freqDiv is
 
 	port(
 		clk : in std_logic;
-		clkOut1P : out std_logic;
-		clkOut2P : out std_logic
+		clkOut1P : out std_logic
+		--clkOut2P : out std_logic
 	);
 
 end freqDiv;
@@ -19,9 +19,9 @@ architecture Behavioral of freqDiv is
 signal CLKIN: std_logic := '0';
 signal CLKBUFGOUT: std_logic := '0';
 signal clkOut1: std_logic := '0';
-signal clkOut2: std_logic := '0';
+--signal clkOut2: std_logic := '0';
 signal clkOut1Int: std_logic := '0';
-signal clkOut2Int: std_logic := '0';
+--signal clkOut2Int: std_logic := '0';
 begin
 
 	IBUFG_inst : IBUFG
@@ -53,7 +53,7 @@ begin
       STARTUP_WAIT => FALSE                  -- Delay config DONE until DCM_SP LOCKED (TRUE/FALSE)
    )
    port map (
-      CLK0 => clkOut2,         -- 1-bit output: 0 degree clock output
+      CLK0 => open,--clkOut2,         -- 1-bit output: 0 degree clock output
       CLK180 => open,     -- 1-bit output: 180 degree clock output
       CLK270 => open,     -- 1-bit output: 270 degree clock output
       CLK2X => open,       -- 1-bit output: 2X clock frequency clock output
@@ -80,13 +80,13 @@ begin
       I => clkOut1  -- 1-bit input: Clock buffer input
    );
 	
-	BUFG_inst_OUT2 : BUFG
-   port map (
-      O => clkOut2Int, -- 1-bit output: Clock buffer output
-      I => clkOut2  -- 1-bit input: Clock buffer input
-   );
+--	BUFG_inst_OUT2 : BUFG
+--   port map (
+--      O => clkOut2Int, -- 1-bit output: Clock buffer output
+--      I => clkOut2  -- 1-bit input: Clock buffer input
+--   );
 
 clkOut1P<= clkOut1Int;
-clkOut2P<= clkOut2Int;
+--clkOut2P<= clkOut2Int;
 end Behavioral;
 

@@ -17,7 +17,7 @@ entity SD_initiator is
 		clk_posedge: in std_logic;
 		clk_negedge: in std_logic;
 		
-		clk_count_limit: out std_logic_vector(7 downto 0);
+		clk_freq_selector: out std_logic;
 
 		sclk_reset_out: out std_logic;
 		
@@ -52,7 +52,7 @@ end SD_initiator;
 
 architecture Behavioral of SD_initiator is
 
-signal clk_400khz_count: std_logic_vector(7 downto 0):="11111001";
+signal clk_count_selector: std_logic := '0';
 
 signal clk_posedge_flag: std_logic := '0';
 signal clk_negedge_flag: std_logic := '0';
@@ -186,8 +186,10 @@ begin
 
 sclk_reset_out <= sclk_reset;
 
-clk_count_limit <= clk_400khz_count;
-
+clk_freq_selector <= clk_count_selector;
+--clk_count_limit <= clk_400khz_count when clk_count_selector = '0' else
+--						 clk_20Mhz_count;
+						 
 SPI_receiver_Inst : SPI_receiver
 
 port map (
@@ -429,7 +431,7 @@ begin
 
 				spi_receiver_response_mode <= '0';
 				
-				clk_400khz_count <= "00000100";
+				clk_count_selector <= '1';
 				actual_state <= STATE_WAIT_CALIB;
 
 				dataLED_Signal <= "10010010";
